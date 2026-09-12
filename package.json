@@ -1,5 +1,5 @@
 {
-  "name": "Outlaws",
+  "name": "lanya",
   "version": "3.4.3",
   "description": "An open-source Discord bot designed to enhance community interaction with a variety of engaging and useful features.",
   "main": "lanya.js",
@@ -33,7 +33,7 @@
     "express-session": "^1.18.1",
     "fuse.js": "^7.1.0",
     "html-entities": "^2.5.2",
-    "lavalink-client": "^4.0.8",
+    "lavalink-client": "^2.4.3",
     "moment": "^2.30.1",
     "mongoose": "^8.7.2",
     "ms": "^2.1.3",
