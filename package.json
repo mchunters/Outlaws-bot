@@ -1,5 +1,5 @@
 {
-  "name": "lanya",
+  "name": "Outlaws",
   "version": "3.4.3",
   "description": "An open-source Discord bot designed to enhance community interaction with a variety of engaging and useful features.",
   "main": "lanya.js",
@@ -8,7 +8,7 @@
     "discord",
     "moderation",
     "discordjs",
-    "lanya"
+    "Outlaws"
   ],
   "author": "birajrai",
   "license": "MIT",
