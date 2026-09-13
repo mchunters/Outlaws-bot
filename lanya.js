@@ -8,9 +8,7 @@ app.get('/', (req, res) => {
 app.listen(10000, () => {
   console.log('✅ Express server running on http://localhost:10000');
 });
-
 require('dotenv').config();
-
 const { Client, GatewayIntentBits } = require('discord.js');
 const { LavalinkManager } = require('lavalink-client');
 const fs = require('fs');
@@ -29,98 +27,29 @@ const client = new Client({
   ],
 });
 
-// ===============================
-// Lavalink v4 Configuration
-// ===============================
-
 client.lavalink = new LavalinkManager({
   nodes: [
     {
-      id: process.env.LL_NAME || 'Outlaws',
-
-      host: process.env.LL_HOST,
-
-      port: Number(process.env.LL_PORT || 13592),
-
       authorization: process.env.LL_PASSWORD,
-
-      secure: false,
-
-      retryAmount: 5,
-
-      retryDelay: 10000,
-
-      requestSignalTimeoutMS: 10000,
-
-      closeOnError: false,
+      host: process.env.LL_HOST,
+      port: parseInt(process.env.LL_PORT, 10),
+      id: process.env.LL_NAME,
     },
   ],
-
-  sendToShard: (guildId, payload) => {
-    return client.guilds.cache.get(guildId)?.shard?.send(payload);
-  },
-
+  sendToShard: (guildId, payload) =>
+    client.guilds.cache.get(guildId)?.shard?.send(payload),
   autoSkip: true,
-
   client: {
     id: process.env.DISCORD_CLIENT_ID,
     username: 'Lanya',
   },
-
   playerOptions: {
     onEmptyQueue: {
-      destroyAfterMs: 30000,
+      destroyAfterMs: 30_000,
       autoPlayFunction: autoPlayFunction,
     },
   },
 });
-
-// ===============================
-// Send Discord Gateway Data
-// to Lavalink
-// ===============================
-
-client.on('raw', (data) => {
-  client.lavalink.sendRawData(data);
-});
-
-// ===============================
-// Discord Ready
-// ===============================
-
-client.once('ready', () => {
-  console.log(`✅ Logged in as ${client.user.tag}`);
-
-  client.lavalink.init(client.user);
-
-  console.log('🎵 Lavalink v4 manager initialized');
-});
-
-// ===============================
-// Lavalink Events
-// ===============================
-
-client.lavalink.nodeManager.on('connect', (node) => {
-  console.log(`🎵 Lavalink node connected: ${node.id}`);
-});
-
-client.lavalink.nodeManager.on('disconnect', (node, reason) => {
-  console.warn(
-    `⚠️ Lavalink node disconnected: ${node.id}`,
-    reason
-  );
-});
-
-client.lavalink.nodeManager.on('error', (node, error) => {
-  console.error(
-    `❌ Lavalink node error: ${node?.id || 'unknown'}`,
-    error
-  );
-});
-
-// ===============================
-// Styles
-// ===============================
 
 const styles = {
   successColor: chalk.bold.green,
@@ -138,34 +67,18 @@ const styles = {
 
 global.styles = styles;
 
-// ===============================
-// Load Handlers
-// ===============================
-
 const handlerFiles = fs
   .readdirSync(path.join(__dirname, 'handlers'))
   .filter((file) => file.endsWith('.js'));
-
 let counter = 0;
-
 for (const file of handlerFiles) {
   counter += 1;
-
   const handler = require(`./handlers/${file}`);
-
   if (typeof handler === 'function') {
     handler(client);
   }
 }
-
 console.log(
-  global.styles.successColor(
-    `✅ Successfully loaded ${counter} handlers`
-  )
+  global.styles.successColor(`✅ Successfully loaded ${counter} handlers`)
 );
-
-// ===============================
-// Login
-// ===============================
-
 client.login(process.env.DISCORD_TOKEN);
