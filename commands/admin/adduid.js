@@ -5,6 +5,7 @@ const {
 } = require('discord.js');
 
 const MirageUID = require('../../models/MirageUID');
+const updateMirageUIDChannel = require('../../functions/updateMirageUIDChannel');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,7 +28,11 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+    if (
+      !interaction.memberPermissions.has(
+        PermissionFlagsBits.Administrator
+      )
+    ) {
       return interaction.reply({
         content: '❌ Only Administrators can use this command.',
         flags: MessageFlags.Ephemeral,
@@ -57,18 +62,25 @@ module.exports = {
         }
       );
 
+      // Update public UID channel
+      await updateMirageUIDChannel(
+        interaction.client,
+        interaction.guild.id
+      );
+
       return interaction.reply({
         content:
           `✅ **Mirage City UID Saved**\n\n` +
           `👤 Member: ${user}\n` +
-          `🎮 UID: \`${uid}\``,
+          `🎮 UID: \`${uid}\`\n\n` +
+          `📢 Public UID list updated automatically.`,
         flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
       console.error('Add UID Error:', error);
 
       return interaction.reply({
-        content: '❌ Failed to save the UID.',
+        content: '❌ Failed to save the UID or update the UID channel.',
         flags: MessageFlags.Ephemeral,
       });
     }
