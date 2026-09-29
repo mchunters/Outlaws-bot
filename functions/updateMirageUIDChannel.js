@@ -8,29 +8,26 @@ async function updateMirageUIDChannel(client, guildId) {
     const channel = await client.channels.fetch(UID_CHANNEL_ID);
 
     if (!channel || !channel.isTextBased()) {
-      throw new Error('UID channel not found or is not a text channel.');
-    }
-
-    if (channel.guildId !== guildId) {
-      throw new Error('UID channel belongs to a different server.');
+      throw new Error('UID channel not found.');
     }
 
     const members = await MirageUID.find({ guildId })
       .sort({ username: 1 })
       .lean();
 
-    let description = '';
+    let description =
+      `🔐 **Private administrator-only UID records**\n\n` +
+      `**Total Members: ${members.length}**\n\n`;
 
     if (members.length === 0) {
-      description = '📭 No Mirage City UIDs have been added yet.';
+      description += '📭 No UID records found.';
     } else {
-      description = members
-        .map(
-          (member, index) =>
-            `**${index + 1}. ${member.username}**\n` +
-            `🎮 UID: \`${member.gameUid}\`\n`
-        )
-        .join('\n');
+      members.forEach((member, index) => {
+        description +=
+          `**${index + 1}. ${member.username}**\n` +
+          `👤 Discord: <@${member.discordUserId}>\n` +
+          `🎮 UID: \`${member.gameUid}\`\n\n`;
+      });
     }
 
     const embed = new EmbedBuilder()
@@ -38,36 +35,42 @@ async function updateMirageUIDChannel(client, guildId) {
       .setTitle('🏴 OUTLAWS — MIRAGE CITY UID LIST')
       .setDescription(description)
       .setFooter({
-        text: `Total Members: ${members.length} • Outlaws`,
+        text: 'Outlaws • Mirage City UID Records',
       })
       .setTimestamp();
 
-    // Find the existing UID message
-    const messages = await channel.messages.fetch({ limit: 100 });
+    // Find old UID list message
+    const messages = await channel.messages.fetch({
+      limit: 100,
+    });
 
     let uidMessage = messages.find(
       (message) =>
         message.author.id === client.user.id &&
         message.embeds.length > 0 &&
-        message.embeds[0].title === '🏴 OUTLAWS — MIRAGE CITY UID LIST'
+        message.embeds[0].title ===
+          '🏴 OUTLAWS — MIRAGE CITY UID LIST'
     );
 
-    // If message does not exist, create it
+    // Create message if it doesn't exist
     if (!uidMessage) {
       uidMessage = await channel.send({
         embeds: [embed],
       });
+
+      console.log('✅ UID list message created.');
     } else {
       // Update existing message
       await uidMessage.edit({
         embeds: [embed],
       });
+
+      console.log('✅ UID list message updated.');
     }
 
     return uidMessage;
   } catch (error) {
     console.error('❌ UID Channel Update Error:', error);
-    throw error;
   }
 }
 
