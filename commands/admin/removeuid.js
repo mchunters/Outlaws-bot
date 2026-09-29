@@ -5,11 +5,12 @@ const {
 } = require('discord.js');
 
 const MirageUID = require('../../models/MirageUID');
+const updateMirageUIDChannel = require('../../functions/updateMirageUIDChannel');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('removeuid')
-    .setDescription('Remove a member\'s Mirage City UID.')
+    .setDescription('Remove a Mirage City UID.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addUserOption((option) =>
       option
@@ -19,7 +20,11 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+    if (
+      !interaction.memberPermissions.has(
+        PermissionFlagsBits.Administrator
+      )
+    ) {
       return interaction.reply({
         content: '❌ Only Administrators can use this command.',
         flags: MessageFlags.Ephemeral,
@@ -41,8 +46,17 @@ module.exports = {
         });
       }
 
+      // Update public UID channel
+      await updateMirageUIDChannel(
+        interaction.client,
+        interaction.guild.id
+      );
+
       return interaction.reply({
-        content: `✅ Mirage City UID for ${user} has been removed.`,
+        content:
+          `✅ UID removed successfully.\n` +
+          `👤 Member: ${user}\n\n` +
+          `📢 Public UID list updated automatically.`,
         flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
