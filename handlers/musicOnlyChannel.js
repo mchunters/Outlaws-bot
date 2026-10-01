@@ -1,4 +1,4 @@
-const MUSIC_CHANNEL_ID = '1547515109667241984';
+const MUSIC_CHANNEL_ID = '1555156668596224020';
 
 module.exports = (client) => {
   client.on('messageCreate', async (message) => {
