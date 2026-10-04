@@ -110,7 +110,7 @@ client.on('messageCreate', async (message) => {
     await logChannel.send(
       `📩 **New DM Received**\n\n` +
       `👤 **User:** ${message.author.tag}\n` +
-      `🆔 **User ID:** ${message.author.id}\n` +
+      `🆔 **User ID:** <@${message.author.id}>\n` +
       `💬 **Message:** ${message.content || '*No text message*'}`
     );
 
