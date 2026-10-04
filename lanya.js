@@ -9,7 +9,7 @@ app.listen(10000, () => {
   console.log('✅ Express server running on http://localhost:10000');
 });
 require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const { LavalinkManager } = require('lavalink-client');
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +25,10 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildVoiceStates,
+  ],
+
+  partials: [
+    Partials.Channel,
   ],
 });
 
