@@ -81,4 +81,44 @@ for (const file of handlerFiles) {
 console.log(
   global.styles.successColor(`✅ Successfully loaded ${counter} handlers`)
 );
+
+// ===============================
+// 📩 DM LOG SYSTEM
+// ===============================
+const DM_LOG_CHANNEL_ID = '1556254987712200824';
+
+client.on('messageCreate', async (message) => {
+  // Bot-এর নিজের message ignore করবে
+  if (message.author.bot) return;
+
+  // শুধু DM message ধরবে
+  if (message.channel.type !== 1) return;
+
+  try {
+    const logChannel = await client.channels.fetch(DM_LOG_CHANNEL_ID);
+
+    if (!logChannel) {
+      console.log('❌ DM log channel not found.');
+      return;
+    }
+
+    await logChannel.send(
+      `📩 **New DM Received**\n\n` +
+      `👤 **User:** ${message.author.tag}\n` +
+      `🆔 **User ID:** ${message.author.id}\n` +
+      `💬 **Message:** ${message.content || '*No text message*'}`
+    );
+
+    console.log(
+      `📩 DM received from ${message.author.tag}: ${message.content}`
+    );
+
+  } catch (error) {
+    console.error('❌ DM Log Error:', error);
+  }
+});
+
+// ===============================
+// 🚀 LOGIN
+// ===============================
 client.login(process.env.DISCORD_TOKEN);
