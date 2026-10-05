@@ -226,21 +226,23 @@ module.exports = {
         // =====================================================
 
         const warVC = await interaction.guild.channels.create({
-          name: WAR_VC_NAME,
-          type: ChannelType.GuildVoice,
+  name: WAR_VC_NAME,
+  type: ChannelType.GuildVoice,
 
-          permissionOverwrites: [
-            {
-              id: interaction.guild.roles.everyone.id,
+  // War VC will be created inside this category
+  parent: '1547829452858331216',
 
-              allow: [
-                PermissionFlagsBits.ViewChannel,
-                PermissionFlagsBits.Connect,
-                PermissionFlagsBits.Speak,
-              ],
-            },
-          ],
-        });
+  permissionOverwrites: [
+    {
+      id: interaction.guild.roles.everyone.id,
+      allow: [
+        PermissionFlagsBits.ViewChannel,
+        PermissionFlagsBits.Connect,
+        PermissionFlagsBits.Speak,
+      ],
+    },
+  ],
+});
 
         // =====================================================
         // WAR ANNOUNCEMENT
