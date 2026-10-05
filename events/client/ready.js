@@ -12,6 +12,11 @@ module.exports = {
     startGiveawayScheduler(client);
     serverStatusUpdater(client);
     updateStatus(client);
+
+    // Initialize Outlaws War System
+const { getWarPanel } = require('../../functions/warSystem');
+await getWarPanel(client);
+    
     client.lavalink.init({ id: client.user.id });
     client.on('raw', (packet) => client.lavalink.sendRawData(packet));
     const commandFolderPath = path.join(__dirname, '../../commands');
