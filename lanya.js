@@ -3,31 +3,6 @@ const app = express();
 
 require('dotenv').config();
 
-// ==========================================
-// 🌐 RENDER WEB SERVER
-// ==========================================
-
-const PORT = process.env.PORT || 10000;
-
-app.get('/', (req, res) => {
-  res.status(200).send('Everything is up!');
-});
-
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'online',
-    bot: client?.isReady?.() ? 'ready' : 'starting',
-  });
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Express server running on port ${PORT}`);
-});
-
-// ==========================================
-// 🤖 DISCORD
-// ==========================================
-
 const {
   Client,
   GatewayIntentBits,
@@ -40,12 +15,24 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 
-const {
-  autoPlayFunction,
-} = require('./functions/autoPlay');
+const { autoPlayFunction } = require('./functions/autoPlay');
 
 // ==========================================
-// 🔐 ENVIRONMENT CHECK
+// 🌐 RENDER WEB SERVER
+// ==========================================
+
+const PORT = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+  res.status(200).send('Everything is up!');
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Express server running on port ${PORT}`);
+});
+
+// ==========================================
+// 🔐 ENV CHECK
 // ==========================================
 
 const requiredEnv = [
@@ -59,25 +46,10 @@ const missingEnv = requiredEnv.filter(
 
 if (missingEnv.length > 0) {
   console.error(
-    `❌ Missing required environment variables: ${missingEnv.join(', ')}`
+    `❌ Missing environment variables: ${missingEnv.join(', ')}`
   );
-}
 
-// Lavalink variables
-if (!process.env.LL_HOST) {
-  console.warn('⚠️ LL_HOST is missing.');
-}
-
-if (!process.env.LL_PORT) {
-  console.warn('⚠️ LL_PORT is missing.');
-}
-
-if (!process.env.LL_PASSWORD) {
-  console.warn('⚠️ LL_PASSWORD is missing.');
-}
-
-if (!process.env.LL_NAME) {
-  console.warn('⚠️ LL_NAME is missing.');
+  process.exit(1);
 }
 
 // ==========================================
@@ -144,13 +116,13 @@ client.lavalink = new LavalinkManager({
   playerOptions: {
     onEmptyQueue: {
       destroyAfterMs: 30_000,
-      autoPlayFunction: autoPlayFunction,
+      autoPlayFunction,
     },
   },
 });
 
 // ==========================================
-// 🎨 CONSOLE STYLES
+// 🎨 STYLES
 // ==========================================
 
 const styles = {
@@ -170,6 +142,66 @@ const styles = {
 global.styles = styles;
 
 // ==========================================
+// 🔍 DISCORD GATEWAY DEBUG
+// ==========================================
+
+client.on('debug', (message) => {
+  console.log(`🔎 Discord Debug: ${message}`);
+});
+
+client.on('ready', () => {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🟢 DISCORD READY EVENT RECEIVED');
+  console.log(`🤖 Logged in as: ${client.user.tag}`);
+  console.log(`🌍 Servers: ${client.guilds.cache.size}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+});
+
+client.on('shardReady', (shardId) => {
+  console.log(
+    `🟢 DISCORD SHARD READY | Shard: ${shardId}`
+  );
+});
+
+client.on('shardReconnecting', (shardId) => {
+  console.warn(
+    `🔄 DISCORD SHARD RECONNECTING | Shard: ${shardId}`
+  );
+});
+
+client.on('shardDisconnect', (event, shardId) => {
+  console.error(
+    `🔴 DISCORD SHARD DISCONNECTED | Shard: ${shardId}`
+  );
+
+  console.error(event);
+});
+
+client.on('shardError', (error, shardId) => {
+  console.error(
+    `❌ DISCORD SHARD ERROR | Shard: ${shardId}`
+  );
+
+  console.error(error);
+});
+
+client.on('error', (error) => {
+  console.error('❌ DISCORD CLIENT ERROR:');
+  console.error(error);
+});
+
+client.on('warn', (warning) => {
+  console.warn('⚠️ DISCORD WARNING:');
+  console.warn(warning);
+});
+
+client.on('invalidated', () => {
+  console.error(
+    '❌ DISCORD SESSION INVALIDATED.'
+  );
+});
+
+// ==========================================
 // 🧩 LOAD HANDLERS
 // ==========================================
 
@@ -178,10 +210,6 @@ try {
     __dirname,
     'handlers'
   );
-
-  if (!fs.existsSync(handlersPath)) {
-    throw new Error('handlers folder not found.');
-  }
 
   const handlerFiles = fs
     .readdirSync(handlersPath)
@@ -197,7 +225,9 @@ try {
 
       if (typeof handler === 'function') {
         handler(client);
+
         counter++;
+
         console.log(
           `✅ Handler loaded: ${file}`
         );
@@ -206,20 +236,21 @@ try {
       console.error(
         `❌ Failed to load handler: ${file}`
       );
+
       console.error(error);
     }
   }
 
   console.log(
-    global.styles.successColor(
-      `✅ Successfully loaded ${counter} handlers`
-    )
+    `✅ Successfully loaded ${counter} handlers`
   );
 } catch (error) {
   console.error(
     '❌ Handler system failed:',
     error
   );
+
+  process.exit(1);
 }
 
 // ==========================================
@@ -231,10 +262,8 @@ const DM_LOG_CHANNEL_ID =
 
 client.on('messageCreate', async (message) => {
   try {
-    // Ignore bots
     if (message.author.bot) return;
 
-    // Only process DMs
     if (message.channel.type !== 1) return;
 
     const logChannel =
@@ -242,24 +271,19 @@ client.on('messageCreate', async (message) => {
         DM_LOG_CHANNEL_ID
       );
 
-    if (!logChannel) {
-      console.error(
-        '❌ DM log channel not found.'
-      );
-      return;
-    }
+    if (!logChannel) return;
 
     await logChannel.send(
       `📩 **New DM Received**\n\n` +
       `👤 **User:** ${message.author.tag}\n` +
-      `🆔 **User ID:** <@${message.author.id}>\n` +
+      `🆔 **User:** <@${message.author.id}>\n` +
       `💬 **Message:** ${
         message.content || '*No text message*'
       }`
     );
 
     console.log(
-      `📩 DM received from ${message.author.tag}: ${message.content}`
+      `📩 DM received from ${message.author.tag}`
     );
   } catch (error) {
     console.error(
@@ -270,87 +294,93 @@ client.on('messageCreate', async (message) => {
 });
 
 // ==========================================
-// 🟢 DISCORD CONNECTION LOGS
+// 🚀 DISCORD LOGIN
 // ==========================================
 
-client.on('error', (error) => {
-  console.error(
-    '❌ Discord Client Error:',
-    error
-  );
-});
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('🔐 Connecting to Discord Gateway...');
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-client.on('warn', (warning) => {
-  console.warn(
-    '⚠️ Discord Warning:',
-    warning
-  );
-});
+let loginFinished = false;
 
-client.on('shardError', (error) => {
-  console.error(
-    '❌ Discord Shard Error:',
-    error
-  );
-});
+client
+  .login(process.env.DISCORD_TOKEN)
+  .then(() => {
+    loginFinished = true;
 
-client.on('shardDisconnect', (event, shardId) => {
-  console.error(
-    `🔴 Discord Shard Disconnected | Shard: ${shardId}`,
-    event
-  );
-});
+    console.log(
+      '✅ Discord login request completed.'
+    );
+  })
+  .catch((error) => {
+    loginFinished = true;
 
-client.on('shardReconnecting', (shardId) => {
-  console.warn(
-    `🔄 Discord Shard Reconnecting | Shard: ${shardId}`
-  );
-});
+    console.error(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
 
-client.on('shardReady', (shardId) => {
-  console.log(
-    `🟢 Discord Shard Ready | Shard: ${shardId}`
-  );
-});
+    console.error(
+      '❌ DISCORD LOGIN FAILED'
+    );
+
+    console.error(error);
+
+    console.error(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
+
+    process.exit(1);
+  });
 
 // ==========================================
-// 🚀 LOGIN
+// ⏱️ DISCORD CONNECTION WATCHDOG
 // ==========================================
 
-if (!process.env.DISCORD_TOKEN) {
-  console.error(
-    '❌ DISCORD_TOKEN is missing. Bot cannot login.'
-  );
-} else {
-  console.log('🔐 Connecting to Discord...');
+setTimeout(() => {
+  if (!client.isReady()) {
+    console.error(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
 
-  client
-    .login(process.env.DISCORD_TOKEN)
-    .then(() => {
-      console.log(
-        '✅ Discord login request completed.'
-      );
-    })
-    .catch((error) => {
-      console.error(
-        '❌ DISCORD LOGIN FAILED:'
-      );
+    console.error(
+      '🚨 DISCORD GATEWAY TIMEOUT'
+    );
+
+    console.error(
+      'Bot has not reached READY state.'
+    );
+
+    console.error(
+      `Login promise finished: ${loginFinished}`
+    );
+
+    console.error(
+      'Check Discord token, Gateway connection, intents and Discord API connectivity.'
+    );
+
+    console.error(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+    );
+
+    try {
+      client.destroy();
+    } catch (error) {
       console.error(error);
+    }
 
-      // Keep the reason visible in Render logs.
-      // Exit so Render can restart the service.
-      process.exit(1);
-    });
-}
+    process.exit(1);
+  }
+}, 30000);
 
 // ==========================================
-// 🛑 PROCESS ERROR HANDLERS
+// 🛑 PROCESS ERRORS
 // ==========================================
 
 process.on('unhandledRejection', (error) => {
   console.error(
     '❌ UNHANDLED PROMISE REJECTION:'
   );
+
   console.error(error);
 });
 
@@ -358,14 +388,19 @@ process.on('uncaughtException', (error) => {
   console.error(
     '❌ UNCAUGHT EXCEPTION:'
   );
+
   console.error(error);
 
   process.exit(1);
 });
 
-process.on('SIGTERM', () => {
+// ==========================================
+// 🛑 SHUTDOWN
+// ==========================================
+
+const shutdown = (signal) => {
   console.log(
-    '🛑 SIGTERM received. Shutting down...'
+    `🛑 ${signal} received. Shutting down...`
   );
 
   try {
@@ -375,18 +410,7 @@ process.on('SIGTERM', () => {
   }
 
   process.exit(0);
-});
+};
 
-process.on('SIGINT', () => {
-  console.log(
-    '🛑 SIGINT received. Shutting down...'
-  );
-
-  try {
-    client.destroy();
-  } catch (error) {
-    console.error(error);
-  }
-
-  process.exit(0);
-});
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
