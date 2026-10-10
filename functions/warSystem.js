@@ -85,7 +85,7 @@ function panelEmbed(active = false) {
       .setDescription(
         '**🔴 WAR STATUS: ACTIVE**\n\n' +
           'The Outlaws are currently in an active war.\n\n' +
-          '🔥 All members should join the War VC and follow the instructions.\n\n' +
+          '🔥 All members should join the War VC and follow instructions.\n\n' +
           '**Only Leader, Co-Leader, Founder, and Moderator can end the war.**'
       )
       .setColor(0xff0000);
@@ -95,38 +95,16 @@ function panelEmbed(active = false) {
     .setTitle('⚔️ OUTLAWS WAR SYSTEM')
     .setDescription(
       '**🟢 WAR STATUS: READY**\n\n' +
-        'Ready to declare a war? Click **🟢 START WAR** and submit the required details.\n\n' +
-        '**War Details Required:**\n' +
-        '• Game UID\n' +
-        '• Enemy Gang Name\n' +
-        '• War Reason\n\n' +
-        '⚠️ **Start War:** Outlaws, Leader, Co-Leader, Founder, Moderator\n' +
+        'Ready to declare a war? Tap **🟢 START WAR**.\n\n' +
+        '✅ No form is required.\n' +
+        '🎮 Your saved Game UID will be included automatically.\n' +
+        '⚠️ A registered UID is required to start a war.\n\n' +
+        '⚔️ **Start War:** Outlaws, Leader, Co-Leader, Founder, Moderator\n' +
         '🛑 **End War:** Leader, Co-Leader, Founder, Moderator\n\n' +
         '**Stay alert. Follow orders. Fight together.**'
     )
     .setColor(0x00ff66);
 }
-
-// ===============================
-// FIND EXISTING WAR PANEL
-// ===============================
-
-async function findPanelMessage(channel) {
-  const messages = await channel.messages.fetch({
-    limit: 50,
-  });
-
-  return messages.find((message) =>
-    message.components?.some((row) =>
-      row.components?.some(
-        (component) =>
-          component.customId === 'outlaws-war-start' ||
-          component.customId === 'outlaws-war-end'
-      )
-    )
-  );
-}
-
 // ===============================
 // CREATE / UPDATE PERMANENT PANEL
 // ===============================
