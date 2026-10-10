@@ -78,6 +78,22 @@ function endRow() {
 // WAR PANEL EMBED
 // ===============================
 
+
+async function findPanelMessage(channel) {
+  const messages = await channel.messages.fetch({
+    limit: 100,
+  });
+
+  return (
+    messages.find((message) =>
+      message.author.id === channel.client.user.id &&
+      message.embeds.some(
+        (embed) => embed.title === '⚔️ OUTLAWS WAR SYSTEM'
+      )
+    ) || null
+  );
+}
+
 function panelEmbed(active = false) {
   if (active) {
     return new EmbedBuilder()
